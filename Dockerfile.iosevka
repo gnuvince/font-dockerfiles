@@ -1,0 +1,28 @@
+FROM ubuntu
+
+RUN apt-get update
+RUN apt-get install -y build-essential curl
+
+# NodeJS >= 6.0
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+RUN apt-get install -y nodejs
+
+# ttfautohint
+RUN apt-get install -y ttfautohint
+
+# otfcc depends on premake5
+WORKDIR /tmp
+RUN curl -sLo premake5.tar.gz https://github.com/premake/premake-core/releases/download/v5.0.0-alpha11/premake-5.0.0-alpha11-linux.tar.gz
+RUN tar xvf premake5.tar.gz && mv premake5 /usr/local/bin/premake5 && rm premake5.tar.gz
+
+# otfcc
+WORKDIR /tmp
+RUN curl -sLo otfcc.tar.gz https://github.com/caryll/otfcc/archive/v0.8.4.tar.gz
+RUN tar xvf otfcc.tar.gz && mv otfcc-0.8.4 otfcc
+WORKDIR /tmp/otfcc
+RUN premake5 gmake && cd build/gmake && make config=release_x64
+WORKDIR /tmp/otfcc/bin/release-x64
+RUN mv otfccbuild /usr/local/bin/otfccbuild
+RUN mv otfccdump /usr/local/bin/otfccdump
+WORKDIR /tmp
+RUN rm -rf otfcc/ otfcc.tar.gz
